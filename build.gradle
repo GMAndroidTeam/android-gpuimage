@@ -3,10 +3,13 @@
 buildscript {
     repositories {
         jcenter()
+        //本地Maven库
+        maven { url 'http://maven.gengmei/nexus/content/repositories/gengmei-android-snapshots/' }
+        //当域名解析有问题时临时切换
+        maven { url 'http://maven.gengmei/nexus/content/repositories/gengmei-android/' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0-beta6'
-        classpath 'com.novoda:bintray-release:0.3.4'
+        classpath 'com.android.tools.build:gradle:2.3.3'
     }
 }
 

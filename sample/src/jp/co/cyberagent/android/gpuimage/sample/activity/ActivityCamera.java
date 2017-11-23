@@ -40,7 +40,7 @@ import java.util.Date;
 import jp.co.cyberagent.android.gpuimage.GPUImage;
 import jp.co.cyberagent.android.gpuimage.GPUImage.OnPictureSavedListener;
 import jp.co.cyberagent.android.gpuimage.GPUImageFilter;
-import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools;
+import jp.co.cyberagent.android.gpuimage.GPUImageToneCurveFilter;
 import jp.co.cyberagent.android.gpuimage.sample.R;
 import jp.co.cyberagent.android.gpuimage.sample.utils.CameraHelper;
 import jp.co.cyberagent.android.gpuimage.sample.utils.CameraHelper.CameraInfo2;
@@ -69,7 +69,9 @@ public class ActivityCamera extends Activity implements OnClickListener {
         if (!mCameraHelper.hasFrontCamera() || !mCameraHelper.hasBackCamera()) {
             cameraSwitchView.setVisibility(View.GONE);
         }
-        mFilter = GPUImageFilterTools.createFilterForType(this, GPUImageFilterTools.FilterType.TONE_CURVE);
+        GPUImageToneCurveFilter toneCurveFilter = new GPUImageToneCurveFilter();
+        toneCurveFilter.setFromCurveFileInputStream(getResources().openRawResource(R.raw.tone_cuver_sample));
+        mFilter = toneCurveFilter;
         mGPUImage.setFilter(mFilter);
     }
 

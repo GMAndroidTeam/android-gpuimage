@@ -17,9 +17,9 @@
 package jp.co.cyberagent.android.gpuimage.sample.activity;
 
 import jp.co.cyberagent.android.gpuimage.GPUImageFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageToneCurveFilter;
 import jp.co.cyberagent.android.gpuimage.GPUImageView;
 import jp.co.cyberagent.android.gpuimage.GPUImageView.OnPictureSavedListener;
-import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools;
 import jp.co.cyberagent.android.gpuimage.sample.R;
 import android.app.Activity;
 import android.content.Intent;
@@ -46,7 +46,9 @@ public class ActivityGallery extends Activity implements OnClickListener, OnPict
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
         startActivityForResult(photoPickerIntent, REQUEST_PICK_IMAGE);
-        mFilter = GPUImageFilterTools.createFilterForType(this, GPUImageFilterTools.FilterType.TONE_CURVE);
+        GPUImageToneCurveFilter toneCurveFilter = new GPUImageToneCurveFilter();
+        toneCurveFilter.setFromCurveFileInputStream(getResources().openRawResource(R.raw.tone_cuver_sample));
+        mFilter = toneCurveFilter;
         mGPUImageView.setFilter(mFilter);
 
     }
