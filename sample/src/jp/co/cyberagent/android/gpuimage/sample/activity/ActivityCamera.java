@@ -29,8 +29,6 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,26 +41,21 @@ import jp.co.cyberagent.android.gpuimage.GPUImage;
 import jp.co.cyberagent.android.gpuimage.GPUImage.OnPictureSavedListener;
 import jp.co.cyberagent.android.gpuimage.GPUImageFilter;
 import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools;
-import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools.FilterAdjuster;
-import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools.OnGpuImageFilterChosenListener;
 import jp.co.cyberagent.android.gpuimage.sample.R;
 import jp.co.cyberagent.android.gpuimage.sample.utils.CameraHelper;
 import jp.co.cyberagent.android.gpuimage.sample.utils.CameraHelper.CameraInfo2;
 
-public class ActivityCamera extends Activity implements OnSeekBarChangeListener, OnClickListener {
+public class ActivityCamera extends Activity implements OnClickListener {
 
     private GPUImage mGPUImage;
     private CameraHelper mCameraHelper;
     private CameraLoader mCamera;
     private GPUImageFilter mFilter;
-    private FilterAdjuster mFilterAdjuster;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-        ((SeekBar) findViewById(R.id.seekBar)).setOnSeekBarChangeListener(this);
-        findViewById(R.id.button_choose_filter).setOnClickListener(this);
         findViewById(R.id.button_capture).setOnClickListener(this);
 
         mGPUImage = new GPUImage(this);
@@ -76,6 +69,8 @@ public class ActivityCamera extends Activity implements OnSeekBarChangeListener,
         if (!mCameraHelper.hasFrontCamera() || !mCameraHelper.hasBackCamera()) {
             cameraSwitchView.setVisibility(View.GONE);
         }
+        mFilter = GPUImageFilterTools.createFilterForType(this, GPUImageFilterTools.FilterType.TONE_CURVE);
+        mGPUImage.setFilter(mFilter);
     }
 
     @Override
@@ -93,16 +88,6 @@ public class ActivityCamera extends Activity implements OnSeekBarChangeListener,
     @Override
     public void onClick(final View v) {
         switch (v.getId()) {
-            case R.id.button_choose_filter:
-                GPUImageFilterTools.showDialog(this, new OnGpuImageFilterChosenListener() {
-
-                    @Override
-                    public void onGpuImageFilterChosenListener(final GPUImageFilter filter) {
-                        switchFilterTo(filter);
-                    }
-                });
-                break;
-
             case R.id.button_capture:
                 if (mCamera.mCameraInstance.getParameters().getFocusMode().equals(
                         Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
@@ -165,8 +150,7 @@ public class ActivityCamera extends Activity implements OnSeekBarChangeListener,
                                 new OnPictureSavedListener() {
 
                                     @Override
-                                    public void onPictureSaved(final Uri
-                                            uri) {
+                                    public void onPictureSaved(final Uri uri) {
                                         pictureFile.delete();
                                         camera.startPreview();
                                         view.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
@@ -210,31 +194,6 @@ public class ActivityCamera extends Activity implements OnSeekBarChangeListener,
         }
 
         return mediaFile;
-    }
-
-    private void switchFilterTo(final GPUImageFilter filter) {
-        if (mFilter == null
-                || (filter != null && !mFilter.getClass().equals(filter.getClass()))) {
-            mFilter = filter;
-            mGPUImage.setFilter(mFilter);
-            mFilterAdjuster = new FilterAdjuster(mFilter);
-        }
-    }
-
-    @Override
-    public void onProgressChanged(final SeekBar seekBar, final int progress,
-            final boolean fromUser) {
-        if (mFilterAdjuster != null) {
-            mFilterAdjuster.adjust(progress);
-        }
-    }
-
-    @Override
-    public void onStartTrackingTouch(final SeekBar seekBar) {
-    }
-
-    @Override
-    public void onStopTrackingTouch(final SeekBar seekBar) {
     }
 
     private class CameraLoader {
