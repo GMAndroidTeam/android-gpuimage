@@ -25,8 +25,9 @@ public class GPUImageTwoFilter extends GPUImageFilterGroup {
     /**
      * Setup and Tear down
      */
-    public GPUImageTwoFilter(Context context , int resId) {
+    public GPUImageTwoFilter(Context context , int resId, float gaussianBlurSize) {
         blurFilter = new GPUImageGaussianBlurFilter();
+        blurFilter.setBlurSize(gaussianBlurSize);
         addFilter(blurFilter);
 
         toneCurveFilter = new GPUImageToneCurveFilter();
