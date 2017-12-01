@@ -16,10 +16,17 @@
 
 package jp.co.cyberagent.android.gpuimage;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.IntBuffer;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera.Size;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
@@ -82,10 +89,62 @@ public class OpenGlUtils {
         return textures[0];
     }
 
+    public static int loadTexture(final Context context, final String name){
+        final int[] textureHandle = new int[1];
+
+        GLES20.glGenTextures(1, textureHandle, 0);
+
+        if (textureHandle[0] != 0){
+
+            // Read in the resource
+            final Bitmap bitmap = getImageFromAssetsFile(context,name);
+
+            // Bind to the texture in OpenGL
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+
+            // Set filtering
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+            // Load the bitmap into the bound texture.
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+
+            // Recycle the bitmap, since its data has been loaded into OpenGL.
+            bitmap.recycle();
+        }
+
+        if (textureHandle[0] == 0){
+            throw new RuntimeException("Error loading texture.");
+        }
+
+        return textureHandle[0];
+    }
+
+
     public static int loadTextureAsBitmap(final IntBuffer data, final Size size, final int usedTexId) {
         Bitmap bitmap = Bitmap
                 .createBitmap(data.array(), size.width, size.height, Config.ARGB_8888);
         return loadTexture(bitmap, usedTexId);
+    }
+
+    public static String readShaderFromRawResource(int resourceId, Context context){
+        final InputStream inputStream = context.getResources().openRawResource(resourceId);
+        final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+        final BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+        String nextLine;
+        final StringBuilder body = new StringBuilder();
+
+        try{
+            while ((nextLine = bufferedReader.readLine()) != null){
+                body.append(nextLine);
+                body.append('\n');
+            }
+        } catch (IOException e){
+            return null;
+        }
+        return body.toString();
     }
 
     public static int loadShader(final String strSource, final int iType) {
@@ -133,6 +192,20 @@ public class OpenGlUtils {
         GLES20.glDeleteShader(iFShader);
         return iProgId;
     }
+
+    private static Bitmap getImageFromAssetsFile(Context context, String fileName){
+        Bitmap image = null;
+        AssetManager am = context.getResources().getAssets();
+        try{
+            InputStream is = am.open(fileName);
+            image = BitmapFactory.decodeStream(is);
+            is.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return image;
+    }
+
 
     public static float rnd(final float min, final float max) {
         float fRandNum = (float) Math.random();
